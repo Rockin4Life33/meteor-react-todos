@@ -1,0 +1,5 @@
+.idea/
+.meteor/
+node_modules/
+imports/img/
+imports/ui/pages/
