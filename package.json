@@ -1,5 +1,8 @@
 {
   "name": "meteor-react-todos",
+  "version": "0.1.0",
+  "author": "Wayne Ritchie",
+  "license": "GNU",
   "private": true,
   "scripts": {
     "start": "meteor run",
@@ -11,8 +14,8 @@
     "@babel/runtime": "^7.1.5",
     "bcrypt": "^3.0.4",
     "meteor-node-stubs": "^0.4.1",
-    "react": "^16.5.0",
-    "react-dom": "^16.5.0"
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3"
   },
   "meteor": {
     "mainModule": {
