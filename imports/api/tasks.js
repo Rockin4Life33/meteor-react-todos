@@ -5,12 +5,10 @@ import { check }  from 'meteor/check';
 export const Tasks = new Mongo.Collection( 'tasks' );
 
 if ( Meteor.isServer ) {
-  // this code only runs on the server
-  Meteor.publish( 'tasks', () => {
-    // Only publish tasks that are public or belong to the current user
+  Meteor.publish( 'tasks', function tasksPublication () {
     return Tasks.find( {
       $or: [
-        { isPrivate: { $ne: true } },
+        { isPrivate: false },
         { owner: this.userId }
       ]
     } );
@@ -27,10 +25,12 @@ Meteor.methods( {
     }
 
     Tasks.insert( {
-      text,
-      createdAt: new Date(),
       owner: this.userId,
-      username: Meteor.users.findOne( this.userId ).username
+      username: Meteor.users.findOne( this.userId ).username,
+      text,
+      isComplete: false,
+      isPrivate: false,
+      createdAt: new Date()
     } );
   },
 
@@ -51,11 +51,11 @@ Meteor.methods( {
     check( taskId, String );
     check( setChecked, Boolean );
 
-    const task = Tasks.findOne(taskId);
+    const task = Tasks.findOne( taskId );
 
-    if (task.isPrivate && task.owner !== this.userId) {
+    if ( task.isPrivate && task.owner !== this.userId ) {
       // If the task is private, make sure only the owner can check it off
-      throw new Meteor.Error('not-authorized');
+      throw new Meteor.Error( 'not-authorized' );
     }
 
     Tasks.update( taskId, { $set: { isComplete: setChecked } } );
@@ -68,7 +68,7 @@ Meteor.methods( {
     const task = Tasks.findOne( taskId );
 
     // Make sure only the task owner can make a task private
-    if ( task.owner !== this.userId ) {
+    if ( task && task.owner !== this.userId ) {
       throw new Meteor.Error( 'not-authorized' );
     }
 
