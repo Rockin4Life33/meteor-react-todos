@@ -4,10 +4,16 @@ import { Template }         from 'meteor/templating';
 import { Blaze }            from 'meteor/blaze';
 
 export default class AccountsUIWrapper extends Component {
+  constructor ( props ) {
+    super( props );
+
+    // Create refs
+    this.container = React.createRef();
+  }
+
   componentDidMount () {
     // Use Meteor Blaze to render login buttons
-    this.view = Blaze.render( Template.loginButtons,
-        ReactDOM.findDOMNode( this.refs.container ) );
+    this.view = Blaze.render( Template.loginButtons, ReactDOM.findDOMNode( this.container.current ) );
   }
 
   componentWillUnmount () {
@@ -17,6 +23,6 @@ export default class AccountsUIWrapper extends Component {
 
   render () {
     // Just render a placeholder container that will be filled in
-    return <span ref="container" />;
+    return <span ref={this.container} />;
   }
 }

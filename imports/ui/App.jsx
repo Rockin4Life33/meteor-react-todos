@@ -11,27 +11,25 @@ class App extends Component {
   constructor ( props ) {
     super( props );
 
+    // Init the state
     this.state = {
       hideCompleted: false
     };
+
+    // Create refs
+    this.taskInput = React.createRef();
   }
 
   handleSubmit ( event ) {
     event.preventDefault();
 
     // Find the text field via the React ref
-    const text = ReactDOM.findDOMNode( this.refs.textInput ).value.trim();
+    const { value } = ReactDOM.findDOMNode( this.taskInput.current );
 
-    Tasks.insert( {
-      text, // the task text/title
-      isComplete: false, // is the task complete
-      createdAt: new Date(), // current time
-      owner: Meteor.userId(), // _id of logged in user
-      username: Meteor.user().username // username of logged in user
-    } );
+    Meteor.call( 'tasks.insert', value.trim() );
 
     // Clear form
-    ReactDOM.findDOMNode( this.refs.textInput ).value = '';
+    ReactDOM.findDOMNode( this.taskInput.current ).value = '';
   }
 
   toggleHideCompleted () {
@@ -47,10 +45,18 @@ class App extends Component {
       filteredTasks = filteredTasks.filter( task => !task.isComplete );
     }
 
-    // return this.props.tasks.map( ( task ) => (
-    return filteredTasks.map( ( task ) => (
-        <Task key={task._id} task={task} />
-    ) );
+    return filteredTasks.map( task => {
+      const curUserId = this.props.currentUser && this.props.currentUser._id;
+      const showIsPrivateBtn = task.owner === curUserId;
+
+      return (
+          <Task
+              key={task._id}
+              task={task}
+              showIsPrivateBtn={showIsPrivateBtn}
+          />
+      );
+    } );
   }
 
   render () {
@@ -73,20 +79,22 @@ class App extends Component {
 
             {this.props.currentUser ?
              <form className="new-task" onSubmit={this.handleSubmit.bind( this )}>
-               <input type="text" ref="textInput" placeholder="Submit New Todo Here" />
+               <input type="text" ref={this.taskInput} placeholder="Submit New Todo Here" />
              </form> : ''
             }
           </header>
 
-          <ul>
-            {this.renderTasks()}
-          </ul>
+          <ul>{this.renderTasks()}</ul>
         </div>
     );
   }
 }
 
 export default withTracker( () => {
+  // Create subscriptions
+  Meteor.subscribe( 'tasks' );
+
+  // Return App globals
   return {
     tasks: Tasks.find( {}, { sort: { createdAt: -1 } } ).fetch(),
     incompleteCount: Tasks.find( { isComplete: false } ).count(),
